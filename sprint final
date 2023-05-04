@@ -1,0 +1,115 @@
+-- Crear base de datos
+CREATE DATABASE sprint;
+CREATE USER 'final '@'localhost' IDENTIFIED BY '1234';
+GRANT ALL PRIVILEGES ON sprint.* TO 'final'@'localhost';
+
+-- Seleccionar la base de datos
+use sprint;
+
+-- Crear tabla de proveedores
+CREATE TABLE Proveedores (
+idProveedor INT PRIMARY KEY AUTO_INCREMENT,
+nombreRepresentante VARCHAR(50),
+nombreEmpresa VARCHAR(50),
+telefono1 VARCHAR(10),
+nombreContacto1 VARCHAR(50),
+telefono2 VARCHAR(10),
+nombreContacto2 VARCHAR(50),
+categoria VARCHAR(50),
+correoFacturacion VARCHAR(50)
+);
+
+-- Insertar datos en la tabla de proveedores
+INSERT INTO Proveedores
+(nombreRepresentante, nombreEmpresa, telefono1, nombreContacto1, telefono2, nombreContacto2, categoria, correoFacturacion)
+VALUES
+('Juan Pérez', 'Electronics S.A.', '555123445', 'Juan', '555567823', 'María', 'Electrónicos', 'facturas@electronics.com'),
+('Pedro García', 'Tech World', '555987609', 'Ana', '555432198', 'Carlos', 'Electrónicos', 'facturas@techworld.com'),
+('Lucía Hernández', 'Games and More', '555246865', 'Miguel', '555135743', 'Isabel', 'Videojuegos', 'facturas@gamesandmore.com'),
+('Roberto González', 'Sports & More', '555369812', 'Cristina', '555741223', 'Raúl', 'Deportes', 'facturas@sportsandmore.com'),
+('Carla Gómez', 'Fashion Corp', '555888832', 'Jorge', '555777743', 'Patricia', 'Moda', 'facturas@fashioncorp.com');
+
+-- Crear tabla de clientes
+CREATE TABLE Clientes (
+idCliente INT PRIMARY KEY AUTO_INCREMENT,
+nombre VARCHAR(50),
+apellido VARCHAR(50),
+direccion VARCHAR(50)
+);
+
+-- Insertar datos en la tabla de clientes
+INSERT INTO Clientes
+(nombre, apellido, direccion)
+VALUES
+('María', 'García', 'Calle 123'),
+('Pedro', 'Fernández', 'Avenida 456'),
+('Ana', 'Pérez', 'Calle 789'),
+('Carlos', 'González', 'Avenida 987'),
+('Miguel', 'Hernández', 'Calle 654');
+
+-- Crear tabla de productos
+CREATE TABLE Producto (
+idProducto INT PRIMARY KEY AUTO_INCREMENT,
+nombre VARCHAR(50),
+precio DECIMAL(8,2),
+categoria VARCHAR(50),
+color VARCHAR(50),
+stock INT
+);
+
+-- Crear tabla intermedia entre productos y proveedores
+CREATE TABLE Proveedor_Producto (
+idProveedor INT,
+idProducto INT,
+PRIMARY KEY (idProveedor, idProducto),
+FOREIGN KEY (idProveedor) REFERENCES Proveedores(idProveedor),
+FOREIGN KEY (idProducto) REFERENCES Producto(idProducto)
+);
+
+-- Insertar datos en la tabla de producto
+INSERT INTO Producto (nombre, precio, categoria, color, stock)
+VALUES
+('Laptop HP', 799990, 'Electrónica', 'Negro', 10),
+('Smartphone Samsung', 359990, 'Electrónica', 'Azul', 20),
+('Televisor LG', 449990, 'Electrónica', 'Negro', 5),
+('Tablet Huawei', 249990, 'Electrónica', 'Blanco', 15),
+('Cámara Sony', 299990, 'Electrónica', 'Plateado', 8),
+('Impresora HP', 89990, 'Electrónica', 'Blanco', 12),
+('Refrigerador LG', 699990, 'Electrodomésticos', 'Gris', 3),
+('Lavadora Samsung', 449990, 'Electrodomésticos', 'Blanco', 6),
+('Secadora LG', 329990, 'Electrodomésticos', 'Negro', 4),
+('Licuadora Oster', 24990, 'Hogar', 'Blanco', 25);
+
+-- Selecciona categoria de productos que mas se repite
+SELECT categoria, COUNT(*) AS repeticiones
+FROM Producto
+GROUP BY categoria
+ORDER BY repeticiones DESC
+LIMIT 1;
+
+-- Selecciona productos con mayor stock
+SELECT nombre, stock
+FROM Producto
+ORDER BY stock DESC
+LIMIT 5;
+
+-- Selecciona color mas comun
+SELECT color, COUNT(*) AS repeticiones
+FROM Producto
+GROUP BY color
+ORDER BY repeticiones DESC
+LIMIT 1;
+
+-- Selecciona proveedores con menor stock de productos
+SELECT P.nombreRepresentante, SUM(PR.stock) AS stock_total
+FROM Proveedores P
+JOIN Proveedor_Producto PP ON P.idProveedor = PP.idProveedor
+JOIN Producto PR ON PP.idProducto = PR.idProducto
+GROUP BY P.idProveedor
+ORDER BY stock_total ASC
+LIMIT 1;
+
+-- Cambia nombre de categoria
+UPDATE Producto
+SET categoria = 'Electrónica y Computación'
+WHERE categoria = (SELECT categoria FROM (SELECT categoria, COUNT(*) as cnt FROM Producto GROUP BY categoria ORDER BY cnt DESC LIMIT 1) AS subq);
